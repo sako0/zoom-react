@@ -16,7 +16,7 @@ const Home = () => {
   }, [isAuthenticated, login])
 
   return (
-    <div className="w-1/3 py-14 mt-10 mx-auto bg-slate-300 flex justify-center flex-col">
+    <div className="w-1/3 py-14 mx-auto bg-slate-300 flex justify-center flex-col h-screen">
       {!isAuthenticated ? (
         <LoginButton />
       ) : (
