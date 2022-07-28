@@ -1,38 +1,19 @@
 import { useAuth0 } from '@auth0/auth0-react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import LoginButton from '../components/LoginButton'
 import LogoutButton from '../components/LogoutButton'
-
-const decodeJwt = (token: string) => {
-  const base64Url = token.split('.')[1]
-  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-  return JSON.parse(decodeURIComponent(escape(window.atob(base64))))
-}
+import { useAuth } from '../hooks/useAuth'
 
 const Home = () => {
-  const [token, setToken] = useState<string>('')
-  const [zoomToken, setZoomToken] = useState<string>('')
-  const [zooomRefreshToken, setZooomRefreshToken] = useState<string>('')
-  const { isAuthenticated, user, getAccessTokenSilently } = useAuth0()
+  const { isAuthenticated, user, zoomToken, zooomRefreshToken, login } =
+    useAuth()
 
   useEffect(() => {
     if (isAuthenticated) {
-      getAccessTokenSilently().then((res) => {
-        setToken(res)
-
-        setZoomToken(decodeJwt(res)['https://oauth.zoom.us/token'].accessToken)
-        setZooomRefreshToken(
-          decodeJwt(res)['https://oauth.zoom.us/token'].refreshToken
-        )
-
-        const requestOptions = {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ Name: user?.name, Email: user?.email }),
-        }
-        fetch('http://localhost:1323/user', requestOptions)
-      })
+      console.log(isAuthenticated)
+      login()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated])
 
   return (

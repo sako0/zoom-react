@@ -1,12 +1,7 @@
 import { useAuth0 } from '@auth0/auth0-react'
 import React from 'react'
 
-type LoginButtonProps = {
-  login?: () => void
-}
-
-const LoginButton = (props: LoginButtonProps) => {
-  const { login } = props
+const LoginButton = () => {
   const { loginWithPopup, isLoading } = useAuth0()
 
   return (

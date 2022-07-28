@@ -13,7 +13,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
           clientId={process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID ?? ''}
           redirectUri="http://localhost:3000"
           audience={DOMAIN + '/api/v2/'}
-          scope="profile read:current_user"
+          scope="profile email read:users read:current_user"
           // skipRedirectCallback={true}
         >
           <Component {...pageProps} />
