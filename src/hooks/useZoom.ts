@@ -1,19 +1,27 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuth } from './useAuth'
 
-type createZoomResponse = {
+type createZoomResponseType = {
   id: number
   join_url: string
   password: string
   start_url: string
 }
 
+export type getMyZoomListResponseType = {
+  meetings: {
+    id: number
+    join_url: string
+    created_at: string
+    start_time: string
+    topic: string
+  }[]
+}
+
 export const useZoom = () => {
   const { zoomToken } = useAuth()
-  const [zoomResponce, setZoomResponse] = useState<createZoomResponse>()
-  //   const zoomResponce = useMemo(() => Object.assign({}, response), [response])
 
-  const createZoom = useCallback(() => {
+  const createZoom = useCallback(async () => {
     if (zoomToken) {
       const requestOptions = {
         method: 'POST',
@@ -22,32 +30,47 @@ export const useZoom = () => {
         },
         body: JSON.stringify({ token: zoomToken }),
       }
-      fetch('http://localhost:1323/zoom', requestOptions).then((res) => {
-        res.json().then((body: createZoomResponse) => {
-          console.log(body)
-
-          setZoomResponse(body)
-        })
-      })
+      const res: Response = await fetch(
+        'http://localhost:1323/createZoom',
+        requestOptions
+      )
+      const body: createZoomResponseType = await res.json()
+      return body
     }
   }, [zoomToken])
 
-  const openZoom = useCallback(() => {
-    if (zoomResponce && zoomResponce.start_url) {
-      window.open(zoomResponce?.start_url, '_blank')
+  const getMyZoomList = useCallback(async () => {
+    if (zoomToken) {
+      const requestOptions = {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+      const res: Response = await fetch(
+        'http://localhost:1323/getMyZoomList?token=' + zoomToken,
+        requestOptions
+      )
+      const body: getMyZoomListResponseType = await res.json()
+      return body
     }
-  }, [zoomResponce])
+  }, [zoomToken])
 
-  useEffect(() => {
-    if (zoomResponce) {
-      openZoom()
-    }
-  }, [openZoom, zoomResponce])
+  // const openZoom = useCallback(() => {
+  //   if (zoomResponce && zoomResponce.start_url) {
+  //     window.open(zoomResponce?.start_url, '_blank')
+  //   }
+  // }, [createZoom])
+
+  // useEffect(() => {
+  //   if (zoomResponce) {
+  //     openZoom()
+  //   }
+  // }, [openZoom, zoomResponce])
 
   return {
     zoomToken,
     createZoom,
-    zoomResponce,
-    openZoom,
+    getMyZoomList,
   }
 }
