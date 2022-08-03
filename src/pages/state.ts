@@ -1,9 +1,12 @@
 import { atom } from 'recoil'
 
-export const zoomUrlState = atom({
-  key: 'zoomUrlState',
+export const zoomState = atom({
+  key: 'zoomState',
   default: {
-    joinUrl: '0',
+    id: -1,
+    joinUrl: '',
     startUrl: '',
+    createdAt: '',
+    topic: '',
   },
 })

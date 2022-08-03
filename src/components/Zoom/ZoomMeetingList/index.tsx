@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { getMyZoomListResponseType, useZoom } from '../../../hooks/useZoom'
+import { GetMyZoomListResponseType, useZoom } from '../../../hooks/useZoom'
 
 const ZoomMeetingList = () => {
   const { getMyZoomList } = useZoom()
-  const [myZoomList, setMyZoomList] = useState<getMyZoomListResponseType>()
+  const [myZoomList, setMyZoomList] = useState<GetMyZoomListResponseType>()
 
   useEffect(() => {
     getMyZoomList().then((res) => {

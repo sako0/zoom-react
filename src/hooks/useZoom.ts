@@ -1,43 +1,60 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useSetRecoilState } from 'recoil'
+import {
+  CreateZoomRequest,
+  CreateZoomResponse,
+} from '../codegen/zoom/v1/zoom_pb'
+import { ZoomServiceClient } from '../codegen/zoom/v1/zoom_pb_service'
+import { zoomState } from '../pages/state'
 import { useAuth } from './useAuth'
 
-type createZoomResponseType = {
+export type GetMyZoomListResponseType = {
+  meetings: ZoomResponseType[]
+}
+type ZoomResponseType = {
   id: number
   join_url: string
-  password: string
+  created_at: string
   start_url: string
-}
-
-export type getMyZoomListResponseType = {
-  meetings: {
-    id: number
-    join_url: string
-    created_at: string
-    start_time: string
-    topic: string
-  }[]
+  topic: string
 }
 
 export const useZoom = () => {
-  const { zoomToken } = useAuth()
+  const { user, zoomToken } = useAuth()
+  const [createZoomResponse, setCreateZoomResponse] =
+    useState<ZoomResponseType>()
+  const setZoom = useSetRecoilState(zoomState)
 
-  const createZoom = useCallback(async () => {
-    if (zoomToken) {
-      const requestOptions = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token: zoomToken }),
-      }
-      const res: Response = await fetch(
-        'http://localhost:1323/createZoom',
-        requestOptions
-      )
-      const body: createZoomResponseType = await res.json()
-      return body
+  const createZoom = useCallback(() => {
+    const client = new ZoomServiceClient('http://localhost:8080')
+    const requestParam = new CreateZoomRequest()
+    if (user && user.sub) {
+      requestParam.setAuth0Id(user.sub)
+      client.createZoom(requestParam, (err, res) => {
+        if (err) {
+          console.log(err)
+        }
+        if (res) {
+          console.log(res)
+          const response: ZoomResponseType = {
+            id: res.getId(),
+            join_url: res.getJoinUrl(),
+            created_at: res.getCreatedAt(),
+            start_url: res.getStartUrl(),
+            topic: res.getTopic(),
+          }
+          setCreateZoomResponse(response)
+          setZoom({
+            joinUrl: res.getJoinUrl(),
+            startUrl: res.getStartUrl(),
+            id: res.getId(),
+            createdAt: res.getCreatedAt(),
+            topic: res.getTopic(),
+          })
+        }
+      })
     }
-  }, [zoomToken])
+  }, [setZoom, user])
 
   const getMyZoomList = useCallback(async () => {
     if (zoomToken) {
@@ -51,7 +68,7 @@ export const useZoom = () => {
         'http://localhost:1323/getMyZoomList?token=' + zoomToken,
         requestOptions
       )
-      const body: getMyZoomListResponseType = await res.json()
+      const body: GetMyZoomListResponseType = await res.json()
       return body
     }
   }, [zoomToken])
@@ -68,9 +85,14 @@ export const useZoom = () => {
   //   }
   // }, [openZoom, zoomResponce])
 
+  useEffect(() => {
+    console.log(createZoomResponse)
+  }, [createZoomResponse])
+
   return {
     zoomToken,
     createZoom,
     getMyZoomList,
+    createZoomResponse,
   }
 }
