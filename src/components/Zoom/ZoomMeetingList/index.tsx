@@ -1,46 +1,52 @@
 import React, { useEffect, useState } from 'react'
+import { useRecoilValue, useSetRecoilState } from 'recoil'
 import { GetMyZoomListResponseType, useZoom } from '../../../hooks/useZoom'
+import { zoomListState } from '../../../pages/state'
 
 const ZoomMeetingList = () => {
-  const { getMyZoomList } = useZoom()
-  const [myZoomList, setMyZoomList] = useState<GetMyZoomListResponseType>()
+  const { getZoomList } = useZoom()
+  const zoomList = useRecoilValue(zoomListState)
 
   useEffect(() => {
-    getMyZoomList().then((res) => {
-      setMyZoomList(res)
-    })
-  }, [getMyZoomList])
+    getZoomList()
+  }, [getZoomList])
+
+  useEffect(() => {
+    console.log(zoomList)
+  }, [zoomList])
 
   return (
     <div className="text-sm w-3/4 mx-auto mt-2 flex flex-col ">
-      {myZoomList?.meetings &&
-        myZoomList.meetings.map((meeting) => {
-          const date = new Date(meeting.created_at)
-          const createdAt =
-            date.getFullYear() +
-            '/' +
-            String(date.getMonth() + 1) +
-            '/' +
-            date.getDate() +
-            ' ' +
-            date.getHours() +
-            ':' +
-            date.getMinutes().toString().padStart(2, '0')
+      {zoomList &&
+        zoomList.map((zoom) =>
+          zoom.zoomMeetingList.map((zoomMeeting) => {
+            const date = new Date(zoomMeeting.createdAt)
+            const createdAt =
+              date.getFullYear() +
+              '/' +
+              String(date.getMonth() + 1) +
+              '/' +
+              date.getDate() +
+              ' ' +
+              date.getHours() +
+              ':' +
+              date.getMinutes().toString().padStart(2, '0')
 
-          return (
-            <div key={meeting.id} className="flex justify-between my-2">
-              <a
-                className=" text-blue-500"
-                target={'_blank'}
-                href={meeting.join_url}
-                rel="noreferrer"
-              >
-                {meeting.topic}
-              </a>
-              <p className="float-right">{createdAt}</p>
-            </div>
-          )
-        })}
+            return (
+              <div key={zoomMeeting.id} className="flex justify-between my-2">
+                <a
+                  className=" text-blue-500"
+                  target={'_blank'}
+                  href={zoomMeeting.joinUrl}
+                  rel="noreferrer"
+                >
+                  {zoomMeeting.topic}
+                </a>
+                <p className="float-right">{zoomMeeting.createdAt}</p>
+              </div>
+            )
+          })
+        )}
     </div>
   )
 }

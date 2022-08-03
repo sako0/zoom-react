@@ -19,6 +19,15 @@ ZoomService.CreateZoom = {
   responseType: zoom_v1_zoom_pb.CreateZoomResponse
 };
 
+ZoomService.GetZoomList = {
+  methodName: "GetZoomList",
+  service: ZoomService,
+  requestStream: false,
+  responseStream: false,
+  requestType: zoom_v1_zoom_pb.GetZoomListRequest,
+  responseType: zoom_v1_zoom_pb.GetZoomListResponse
+};
+
 exports.ZoomService = ZoomService;
 
 function ZoomServiceClient(serviceHost, options) {
@@ -31,6 +40,37 @@ ZoomServiceClient.prototype.createZoom = function createZoom(requestMessage, met
     callback = arguments[1];
   }
   var client = grpc.unary(ZoomService.CreateZoom, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+ZoomServiceClient.prototype.getZoomList = function getZoomList(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(ZoomService.GetZoomList, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

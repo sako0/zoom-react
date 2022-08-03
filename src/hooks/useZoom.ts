@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useSetRecoilState } from 'recoil'
 import {
   CreateZoomRequest,
-  CreateZoomResponse,
+  GetZoomListRequest,
 } from '../codegen/zoom/v1/zoom_pb'
 import { ZoomServiceClient } from '../codegen/zoom/v1/zoom_pb_service'
-import { zoomState } from '../pages/state'
+import { zoomListState, ZoomListStateType, zoomState } from '../pages/state'
 import { useAuth } from './useAuth'
 
 export type GetMyZoomListResponseType = {
@@ -24,6 +24,7 @@ export const useZoom = () => {
   const [createZoomResponse, setCreateZoomResponse] =
     useState<ZoomResponseType>()
   const setZoom = useSetRecoilState(zoomState)
+  const setZoomList = useSetRecoilState(zoomListState)
 
   const createZoom = useCallback(() => {
     const client = new ZoomServiceClient('http://localhost:8080')
@@ -56,22 +57,40 @@ export const useZoom = () => {
     }
   }, [setZoom, user])
 
-  const getMyZoomList = useCallback(async () => {
+  const getZoomList = useCallback(() => {
     if (zoomToken) {
-      const requestOptions = {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-      const res: Response = await fetch(
-        'http://localhost:1323/getMyZoomList?token=' + zoomToken,
-        requestOptions
-      )
-      const body: GetMyZoomListResponseType = await res.json()
-      return body
+      const client = new ZoomServiceClient('http://localhost:8080')
+      const requestParam = new GetZoomListRequest()
+      requestParam.setOrganizationId(1)
+      requestParam.setZoomToken(zoomToken)
+      client.getZoomList(requestParam, (err, res) => {
+        if (err) {
+          console.log(err)
+        }
+        if (res) {
+          const resList = res.getZoomListList()
+          const formatResponseList: ZoomListStateType = resList.map((res) => {
+            const meetingList = res.getZoomMeetingListList()
+            const meetingInfoList = meetingList.map((meeting) => {
+              return {
+                id: meeting.getId(),
+                createdAt: meeting.getCreatedAt(),
+                joinUrl: meeting.getJoinUrl(),
+                startUrl: meeting.getStartUrl(),
+                topic: meeting.getTopic(),
+                hostId: meeting.getHostId(),
+              }
+            })
+            return {
+              zoomUserId: res.getZoomUserId(),
+              zoomMeetingList: meetingInfoList,
+            }
+          })
+          setZoomList(formatResponseList)
+        }
+      })
     }
-  }, [zoomToken])
+  }, [setZoomList, zoomToken])
 
   // const openZoom = useCallback(() => {
   //   if (zoomResponce && zoomResponce.start_url) {
@@ -92,7 +111,7 @@ export const useZoom = () => {
   return {
     zoomToken,
     createZoom,
-    getMyZoomList,
+    getZoomList,
     createZoomResponse,
   }
 }
