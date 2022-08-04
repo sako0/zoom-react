@@ -17,7 +17,7 @@ type ZoomServiceGetZoomList = {
   readonly methodName: string;
   readonly service: typeof ZoomService;
   readonly requestStream: false;
-  readonly responseStream: false;
+  readonly responseStream: true;
   readonly requestType: typeof zoom_v1_zoom_pb.GetZoomListRequest;
   readonly responseType: typeof zoom_v1_zoom_pb.GetZoomListResponse;
 };
@@ -69,14 +69,6 @@ export class ZoomServiceClient {
     requestMessage: zoom_v1_zoom_pb.CreateZoomRequest,
     callback: (error: ServiceError|null, responseMessage: zoom_v1_zoom_pb.CreateZoomResponse|null) => void
   ): UnaryResponse;
-  getZoomList(
-    requestMessage: zoom_v1_zoom_pb.GetZoomListRequest,
-    metadata: grpc.Metadata,
-    callback: (error: ServiceError|null, responseMessage: zoom_v1_zoom_pb.GetZoomListResponse|null) => void
-  ): UnaryResponse;
-  getZoomList(
-    requestMessage: zoom_v1_zoom_pb.GetZoomListRequest,
-    callback: (error: ServiceError|null, responseMessage: zoom_v1_zoom_pb.GetZoomListResponse|null) => void
-  ): UnaryResponse;
+  getZoomList(requestMessage: zoom_v1_zoom_pb.GetZoomListRequest, metadata?: grpc.Metadata): ResponseStream<zoom_v1_zoom_pb.GetZoomListResponse>;
 }
 

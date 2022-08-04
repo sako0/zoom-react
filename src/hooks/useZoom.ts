@@ -63,10 +63,10 @@ export const useZoom = () => {
       const requestParam = new GetZoomListRequest()
       requestParam.setOrganizationId(1)
       requestParam.setZoomToken(zoomToken)
-      client.getZoomList(requestParam, (err, res) => {
-        if (err) {
-          console.log(err)
-        }
+      const stream$ = client.getZoomList(requestParam)
+      stream$.on('data', (res) => {
+        console.log(res)
+
         if (res) {
           const resList = res.getZoomListList()
           const formatResponseList: ZoomListStateType = resList.map((res) => {
